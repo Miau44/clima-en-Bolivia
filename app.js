@@ -55,7 +55,7 @@
     if(activeAudio&&activeAudio.src===new URL(path,document.baseURI).href&& !activeAudio.paused){activeAudio.volume=state.volume;return;}
     const generation=++audioGeneration;cancelAnimationFrame(audioFrame);audioTarget=path;
     const old=activeAudio, next=old===audioNodes[0]?audioNodes[1]:audioNodes[0];
-    next.pause();next.src=path;next.preload='auto';next.currentTime=0;next.volume=0;next.load();
+    next.pause();next.src=path;next.preload='auto';next.currentTime=0;next.volume=0;
     const start=()=>{
       if(generation!==audioGeneration)return;
       next.play().then(()=>{
@@ -293,7 +293,11 @@
     updateSoundControls();setAmbientSound();if(!state.paused)frontVideo.play().catch(()=>{});
   });
   $('welcomeBack').addEventListener('click',()=>{document.body.classList.add('is-welcome');$('welcomeScreen').classList.remove('is-hidden','is-exiting');stopAmbientSound();clearInterval(timerInterval);timerInterval=null;$('timerStart').disabled=false;$('timerPause').disabled=true;});
-  $('soundBtn').addEventListener('click',()=>{state.soundEnabled=!state.soundEnabled;updateSoundControls();setAmbientSound();});
+  $('soundBtn').addEventListener('click',()=>{
+    const audioIsPlaying=audioNodes.some(node=>!node.paused);
+    if(state.soundEnabled&&!activeAudio&&!audioIsPlaying){setAmbientSound();return;}
+    state.soundEnabled=!state.soundEnabled;updateSoundControls();setAmbientSound();
+  });
   $('volumeControl').addEventListener('input',event=>{state.volume=Number(event.target.value)/100;updateSoundControls();if(state.volume===0){stopAmbientSound();return;}setAmbientSound();});
   $('nextCity').addEventListener('click',()=>{const order=Object.keys(cities),index=order.indexOf(state.city);setCity(order[(index+1)%order.length]);});
   let timerSeconds=180,timerInterval=null;
