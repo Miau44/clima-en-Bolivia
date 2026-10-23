@@ -19,29 +19,72 @@
     drop: svg('<path d="M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13Z"/>')
   };
   const cities = {
-    lapaz:{name:'La Paz',region:'LA PAZ',lat:-16.4897,lon:-68.1193,description:'Donde el cielo se siente m\u00e1s cerca.',effect:'storm',temp:11,number:'01',tag:'ALTURA & ATM\u00d3SFERA'},
-    cocha:{name:'Cochabamba',region:'COCHABAMBA',lat:-17.3895,lon:-66.1568,description:'Un valle de luz, una pausa de sol.',effect:'sun',temp:26,number:'02',tag:'VALLE & LUZ'},
-    santacruz:{name:'Santa Cruz',region:'SANTA CRUZ',lat:-17.7833,lon:-63.1821,description:'El viento tambi\u00e9n tiene su propia voz.',effect:'wind',temp:31,number:'03',tag:'BRISA & MOVIMIENTO'}
+    lapaz:{name:'La Paz',region:'LA PAZ',lat:-16.4897,lon:-68.1193,description:'Cold, rainy and cloudy with thunderstorms.',effect:'storm',temp:12,number:'01',tag:'ALTITUDE & ATMOSPHERE'},
+    cocha:{name:'Cochabamba',region:'COCHABAMBA',lat:-17.3895,lon:-66.1568,description:'Warm, sunny skies over the valley.',effect:'sun',temp:27,number:'02',tag:'VALLEY & LIGHT'},
+    santacruz:{name:'Santa Cruz',region:'SANTA CRUZ',lat:-17.7833,lon:-63.1821,description:'Hot and windy, with leaves moving in the breeze.',effect:'wind',temp:31,number:'03',tag:'BREEZE & MOVEMENT'}
   };
-  const sceneCopy = {storm:'Nubes, lluvia y electricidad.',sun:'Luz que se mueve contigo.',wind:'R\u00e1fagas, hojas y aire vivo.',rain:'El ritmo de la lluvia.',cloud:'El cielo, en movimiento.',night:'La calma al caer la noche.',snow:'Peque\u00f1as part\u00edculas de invierno.',fog:'Un paisaje entre la bruma.'};
-  const sceneNames = {storm:'Tormenta el\u00e9ctrica',sun:'Cielo despejado',wind:'Viento intenso',rain:'Lluvia',cloud:'Cielo nuboso',night:'Noche despejada',snow:'Nieve',fog:'Niebla'};
+  const sceneCopy = {storm:'Clouds, rain and electricity.',sun:'Light moving with you.',wind:'Gusts, leaves and lively air.',rain:'The rhythm of the rain.',cloud:'The sky in motion.',night:'Calm as night falls.',snow:'Small winter particles.',fog:'A landscape in the mist.'};
+  const sceneNames = {storm:'Thunderstorm',sun:'Sunny',wind:'Windy',rain:'Rainy',cloud:'Cloudy',night:'Clear night',snow:'Snow',fog:'Fog'};
   const backgrounds = {storm:'tormenta',sun:'sol',wind:'viento',rain:'tormenta',cloud:'tormenta',night:'tormenta',snow:'tormenta',fog:'tormenta'};
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const state = {city:'lapaz',mode:'demo',effect:'storm',fahrenheit:false,paused:reducedMotion.matches,cinema:false,intensity:.65,data:null,cache:{},customVideos:{},requestId:0,abort:null};
+  const state = {city:'lapaz',mode:'demo',effect:'storm',fahrenheit:false,paused:reducedMotion.matches,cinema:false,intensity:.65,data:null,cache:{},customVideos:{},requestId:0,abort:null,entered:false,soundEnabled:true,volume:.25};
+  const audioNodes=[$('weatherAudioA'),$('weatherAudioB')];
+  const audioFiles={storm:'assets/tormenta.mp3',rain:'assets/tormenta.mp3',sun:'assets/sol.mp3',wind:'assets/viento.mp3'};
+  let activeAudio=null,audioFrame=0,audioGeneration=0,audioTarget='';
+  const presenterLines={lapaz:'There are many buildings in the city. People are walking with umbrellas.',cocha:'There are beautiful parks and restaurants. Families are enjoying the sunshine.',santacruz:'There are many trees and shopping centers. The wind is blowing.'};
   let toastTimer, videoSequence = 0, frontVideo = $('videoA'), currentAsset = '', lastScene = '';
+  function updateSoundControls() {
+    const label=state.soundEnabled?'Sound ON':'Sound OFF';
+    $('soundBtn').title=label;$('soundBtn').setAttribute('aria-label',state.soundEnabled?'Turn sound off':'Turn sound on');
+    $('soundBtn').setAttribute('aria-pressed',state.soundEnabled);$('soundBtn').classList.toggle('is-muted',!state.soundEnabled);
+    $('volumeControl').value=Math.round(state.volume*100);$('volumeValue').textContent=Math.round(state.volume*100)+'%';
+  }
+  function stopAmbientSound() {
+    audioGeneration++;cancelAnimationFrame(audioFrame);audioNodes.forEach(node=>{node.volume=0;node.pause();});activeAudio=null;audioTarget='';
+  }
+  function fadeAmbientOut() {
+    if(!activeAudio)return;const old=activeAudio,generation=++audioGeneration;cancelAnimationFrame(audioFrame);
+    const began=performance.now(),duration=1000;
+    const fade=now=>{if(generation!==audioGeneration)return;const progress=Math.min(1,(now-began)/duration);old.volume=state.volume*(1-progress);if(progress<1)audioFrame=requestAnimationFrame(fade);else{old.pause();old.volume=0;activeAudio=null;audioTarget='';}};
+    audioFrame=requestAnimationFrame(fade);
+  }
+  function setAmbientSound() {
+    if(!state.entered||!state.soundEnabled||state.volume===0){stopAmbientSound();return;}
+    if(!audioFiles[state.effect]){fadeAmbientOut();return;}
+    const path=asset(audioFiles[state.effect]);
+    if(activeAudio&&activeAudio.src===new URL(path,document.baseURI).href&& !activeAudio.paused){activeAudio.volume=state.volume;return;}
+    const generation=++audioGeneration;cancelAnimationFrame(audioFrame);audioTarget=path;
+    const old=activeAudio, next=old===audioNodes[0]?audioNodes[1]:audioNodes[0];
+    next.pause();next.src=path;next.preload='auto';next.currentTime=0;next.volume=0;next.load();
+    const start=()=>{
+      if(generation!==audioGeneration)return;
+      next.play().then(()=>{
+        if(generation!==audioGeneration){if(audioTarget!==path)next.pause();return;}
+        activeAudio=next;const began=performance.now(),duration=1400;
+        const fade=now=>{
+          if(generation!==audioGeneration)return;
+          const progress=Math.min(1,(now-began)/duration);
+          next.volume=state.volume*progress;if(old)old.volume=state.volume*(1-progress);
+          if(progress<1)audioFrame=requestAnimationFrame(fade);else if(old){old.pause();old.volume=0;}
+        };
+        audioFrame=requestAnimationFrame(fade);
+      }).catch(()=>{if(generation===audioGeneration){state.soundEnabled=false;updateSoundControls();toast('Ambient playback was blocked. Press Sound ON to retry.');}});
+    };
+    start();
+  }
   const finite = value => typeof value === 'number' && Number.isFinite(value);
-  const num = (value,digits=0) => finite(value) ? value.toLocaleString('es-BO',{minimumFractionDigits:digits,maximumFractionDigits:digits}) : '\u2014';
+  const num = (value,digits=0) => finite(value) ? value.toLocaleString('en-US',{minimumFractionDigits:digits,maximumFractionDigits:digits}) : '\u2014';
   const temperature = value => finite(value) ? `${Math.round(state.fahrenheit ? value*9/5+32 : value)}\u00b0` : '\u2014';
-  const nowInBolivia = date => new Intl.DateTimeFormat('es-BO',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/La_Paz'}).format(date || new Date());
+  const nowInBolivia = date => new Intl.DateTimeFormat('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/La_Paz'}).format(date || new Date());
   function toast(message) { $('toast').textContent=message; $('toast').classList.add('is-shown'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>$('toast').classList.remove('is-shown'),4500); }
-  function updateClock() { $('localTime').textContent=nowInBolivia(); $('todayDate').textContent=new Intl.DateTimeFormat('es-BO',{day:'numeric',month:'short',timeZone:'America/La_Paz'}).format(new Date()); }
+  function updateClock() { $('localTime').textContent=nowInBolivia(); $('todayDate').textContent=new Intl.DateTimeFormat('en-US',{day:'numeric',month:'short',timeZone:'America/La_Paz'}).format(new Date()); }
   function getDemoData(cityId,effect) {
     const c=cities[cityId]; const offsets={storm:-5,rain:-3,sun:0,wind:2};
     const temp=effect===c.effect?c.temp:(cityId==='lapaz'?16:cityId==='cocha'?26:29)+(offsets[effect]||0);
     const values={storm:[82,2.4,18,28,45],sun:[34,0,8,14,320],wind:[48,0,34,52,25],rain:[91,3.8,15,24,150]};
     const [humidity,precip,wind,gust,direction]=values[effect]||values.sun;
     const probs={storm:[85,90,80,60,40,25],rain:[80,85,70,65,55,40],sun:[0,0,5,5,10,10],wind:[10,10,15,10,20,15]};
-    const hourly=Array.from({length:6},(_,i)=>({label: i===0?'Ahora':nowInBolivia(new Date(Date.now()+i*3600000)),temp:temp+[0,1,1,-1,-2,-3][i],prob:(probs[effect]||probs.sun)[i],scene:i>=4&&effect==='storm'?'rain':effect}));
+    const hourly=Array.from({length:6},(_,i)=>({label: i===0?'Now':nowInBolivia(new Date(Date.now()+i*3600000)),temp:temp+[0,1,1,-1,-2,-3][i],prob:(probs[effect]||probs.sun)[i],scene:i>=4&&effect==='storm'?'rain':effect}));
     return {temp,feels:temp+(effect==='sun'?1:effect==='storm'?-3:effect==='wind'?-2:-1),min:temp-6,max:temp+3,humidity,precip,wind,gust,direction,sunset:cityId==='lapaz'?'18:38':cityId==='cocha'?'18:26':'18:19',scene:effect,isDay:true,hourly,condition:sceneNames[effect]};
   }
   function sceneFor(code,wind=0,gust=0,isDay=true) {
@@ -54,15 +97,15 @@
     return isDay ? 'sun':'night';
   }
   function conditionFor(code,scene) {
-    if(scene==='wind') return 'Viento intenso';
-    const names={0:'Despejado',1:'Mayormente despejado',2:'Parcialmente nublado',3:'Nublado',45:'Niebla',48:'Niebla con escarcha',51:'Llovizna ligera',53:'Llovizna',55:'Llovizna densa',56:'Llovizna helada',57:'Llovizna helada intensa',61:'Lluvia ligera',63:'Lluvia moderada',65:'Lluvia intensa',66:'Lluvia helada',67:'Lluvia helada intensa',71:'Nieve ligera',73:'Nevada',75:'Nevada intensa',77:'Granos de nieve',80:'Chubascos ligeros',81:'Chubascos',82:'Chubascos intensos',85:'Chubascos de nieve',86:'Chubascos de nieve intensos',95:'Tormenta el\u00e9ctrica',96:'Tormenta con granizo',99:'Tormenta con granizo intenso'};
-    return names[code]||sceneNames[scene]||'Condici\u00f3n no disponible';
+    if(scene==='wind') return 'Windy';
+    const names={0:'Clear',1:'Mostly clear',2:'Partly cloudy',3:'Cloudy',45:'Fog',48:'Freezing fog',51:'Light drizzle',53:'Drizzle',55:'Dense drizzle',56:'Freezing drizzle',57:'Heavy freezing drizzle',61:'Light rain',63:'Moderate rain',65:'Heavy rain',66:'Freezing rain',67:'Heavy freezing rain',71:'Light snow',73:'Snowfall',75:'Heavy snow',77:'Snow grains',80:'Light showers',81:'Showers',82:'Heavy showers',85:'Snow showers',86:'Heavy snow showers',95:'Thunderstorm',96:'Thunderstorm with hail',99:'Thunderstorm with heavy hail'};
+    return names[code]||sceneNames[scene]||'Condition unavailable';
   }
   function normalizeWeather(raw) {
     const c=raw.current, h=raw.hourly, d=raw.daily;
-    if(!c || !finite(c.temperature_2m) || !finite(c.weather_code)) throw new Error('Respuesta incompleta');
+    if(!c || !finite(c.temperature_2m) || !finite(c.weather_code)) throw new Error('Incomplete weather response');
     const isDay=c.is_day===1, scene=sceneFor(c.weather_code,c.wind_speed_10m,c.wind_gusts_10m,isDay);
-    const hourly=[{label:'Ahora',temp:c.temperature_2m,prob:null,scene}];
+    const hourly=[{label:'Now',temp:c.temperature_2m,prob:null,scene}];
     if(h&&Array.isArray(h.time)) {
       let start=h.time.findIndex(t=>t>c.time); if(start<0) start=h.time.length;
       const currentHour=h.time.findIndex(t=>t.slice(0,13)===c.time.slice(0,13));
@@ -76,8 +119,8 @@
   }
   function directionName(degrees) {
     if(!finite(degrees))return '\u2014';
-    const names=['norte','noreste','este','sureste','sur','suroeste','oeste','noroeste'];
-    return 'Del '+names[Math.round(degrees/45)%8];
+    const names=['north','northeast','east','southeast','south','southwest','west','northwest'];
+    return 'From the '+names[Math.round(degrees/45)%8];
   }
   function renderTabs() {
     document.querySelectorAll('[data-temp-city]').forEach(el=>{
@@ -89,16 +132,16 @@
   function renderData(data) {
     state.data=data;
     const t=temperature(data?.temp); $('temperature').innerHTML= t==='\u2014'?'\u2014':`${t.slice(0,-1)}<span>\u00b0</span>`;
-    $('condition').textContent=data?.condition||'Consulta meteorol\u00f3gica'; $('conditionIcon').innerHTML=icons[data?.scene||'cloud'];
+    $('condition').textContent=data?.condition||'Weather check'; $('conditionIcon').innerHTML=icons[data?.scene||'cloud'];
     $('feelsLike').textContent=temperature(data?.feels); $('minTemp').textContent=temperature(data?.min); $('maxTemp').textContent=temperature(data?.max);
     $('windSpeed').textContent=num(data?.wind); $('gustSpeed').textContent=finite(data?.gust)?`${num(data.gust)} km/h`:'\u2014';
     $('windDirection').textContent=directionName(data?.direction); $('compassArrow').style.transform=`rotate(${data?.direction||0}deg)`;
     $('humidity').innerHTML=finite(data?.humidity)?`${num(data.humidity)}<span>%</span>`:'\u2014';
     $('precipitation').innerHTML=finite(data?.precip)?`${num(data.precip,1)}<span>mm</span>`:'\u2014'; $('sunset').textContent=data?.sunset||'\u2014';
     const hours=data?.hourly||Array.from({length:6},()=>({label:'\u2014',temp:null,prob:null,scene:'cloud'}));
-    $('hourlyList').innerHTML=hours.map((hour,i)=>`<div class="hour ${i===0?'is-now':''}"><span class="hour-time">${hour.label}</span>${icons[hour.scene]||icons.cloud}<strong>${temperature(hour.temp)}</strong><span class="rain-prob" title="Probabilidad de precipitaci\u00f3n">${icons.drop}${finite(hour.prob)?Math.round(hour.prob)+'%':'\u2014'}</span></div>`).join('');
-    $('forecastTitle').innerHTML=state.mode==='demo'?'PR\u00d3XIMAS HORAS <span class="muted">/ EJEMPLO</span>':'PR\u00d3XIMAS HORAS <span class="muted">/ PRON\u00d3STICO</span>';
-    $('panelCaption').textContent=state.mode==='demo'?'Escenario visual para tu presentaci\u00f3n.':'Estimaci\u00f3n de Open-Meteo para un punto de la ciudad.';
+    $('hourlyList').innerHTML=hours.map((hour,i)=>`<div class="hour ${i===0?'is-now':''}"><span class="hour-time">${hour.label}</span>${icons[hour.scene]||icons.cloud}<strong>${temperature(hour.temp)}</strong><span class="rain-prob" title="Precipitation probability">${icons.drop}${finite(hour.prob)?Math.round(hour.prob)+'%':'\u2014'}</span></div>`).join('');
+    $('forecastTitle').innerHTML=state.mode==='demo'?'NEXT HOURS <span class="muted">/ DEMO</span>':'NEXT HOURS <span class="muted">/ FORECAST</span>';
+    $('panelCaption').textContent=state.mode==='demo'?'Visual scene for your presentation.':'Open-Meteo estimate for a location in this city.';
     renderTabs();
     if(data) {state.effect=data.scene; applyScene();}
   }
@@ -109,13 +152,13 @@
     $('liveBtn').classList.toggle('is-active',mode==='live'); $('liveBtn').setAttribute('aria-pressed',mode==='live');
     if(mode==='demo') {
       state.requestId++;state.abort?.abort();state.effect=cities[state.city].effect;
-      renderData(getDemoData(state.city,state.effect));setStatus('','DEMO \u00b7 DATOS DE EJEMPLO');
+      renderData(getDemoData(state.city,state.effect));setStatus('','DEMO WEATHER \u00b7 SIMULATED CONDITIONS');
     } else loadWeather();
   }
   async function loadWeather(force=false) {
     const id=++state.requestId;state.abort?.abort();const cityId=state.city;const city=cities[cityId];const cached=state.cache[cityId];
-    if(!force&&cached&&Date.now()-cached.time<600000) {renderData(cached.data);setStatus('live',`ESTIMACI\u00d3N \u00b7 ${cached.data.modelTime.slice(11,16)} BOT \u00b7 OPEN-METEO`);return;}
-    renderData(null);setStatus('loading','CONSULTANDO OPEN-METEO...');
+    if(!force&&cached&&Date.now()-cached.time<600000) {renderData(cached.data);setStatus('live',`LIVE WEATHER \u00b7 ${cached.data.modelTime.slice(11,16)} BOT \u00b7 OPEN-METEO`);return;}
+    renderData(null);setStatus('loading','CHECKING OPEN-METEO...');
     const controller=new AbortController();state.abort=controller;const timer=setTimeout(()=>controller.abort(),14000);
     const params=new URLSearchParams({latitude:city.lat,longitude:city.lon,current:'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m',hourly:'temperature_2m,precipitation_probability,weather_code,is_day',daily:'temperature_2m_max,temperature_2m_min,sunset',timezone:'America/La_Paz',forecast_days:'2',wind_speed_unit:'kmh'});
     try {
@@ -123,22 +166,22 @@
       if(!response.ok) throw new Error(`HTTP ${response.status}`);
       const data=normalizeWeather(await response.json());
       if(id!==state.requestId||state.mode!=='live'||state.city!==cityId) return;
-      state.cache[cityId]={data,time:Date.now()};renderData(data);setStatus('live',`ESTIMACI\u00d3N \u00b7 ${data.modelTime.slice(11,16)} BOT \u00b7 OPEN-METEO`);
+      state.cache[cityId]={data,time:Date.now()};renderData(data);setStatus('live',`LIVE WEATHER \u00b7 ${data.modelTime.slice(11,16)} BOT \u00b7 OPEN-METEO`);
     } catch(error) {
       if(id!==state.requestId||state.mode!=='live')return;
-      renderData(null);setStatus('error','SIN CONEXI\u00d3N \u00b7 NO HAY DATOS ACTUALES');
-      $('condition').textContent='No se pudo consultar el clima';
-      toast('No se pudo consultar Open-Meteo. Reintenta o usa Explorar para la demostraci\u00f3n.');
+      renderData(null);setStatus('error','OFFLINE \u00b7 LIVE DATA UNAVAILABLE');
+      $('condition').textContent='Weather could not be retrieved';
+      toast('Open-Meteo could not be reached. Try again or use Explore for the demo.');
     } finally { clearTimeout(timer); }
   }
   function setCity(id) {
     if(!cities[id])return;state.city=id;const c=cities[id];
     document.body.dataset.city=id;$('cityName').textContent=c.name;const dot=document.createElement('span');dot.className='city-period';dot.textContent='.';$('cityName').append(dot);
-    $('regionLabel').textContent=c.region; $('cityDescription').textContent=c.description; $('coordinate').textContent=`${Math.abs(c.lat).toFixed(4)}\u00b0 S   ${Math.abs(c.lon).toFixed(4)}\u00b0 O`;
+    $('regionLabel').textContent=c.region; $('cityDescription').textContent=c.description; $('coordinate').textContent=`${Math.abs(c.lat).toFixed(4)}\u00b0 S   ${Math.abs(c.lon).toFixed(4)}\u00b0 W`;
     $('sceneNumber').textContent=c.number;$('sceneName').textContent=c.tag;$('cinemaCity').textContent=c.name;$('uploadCity').textContent=c.name.toUpperCase();$('resetVideo').hidden=!state.customVideos[id];
-    $('landscape').innerHTML=landscapeFor(id);renderTabs();
-    if(state.mode==='demo') {state.effect=c.effect;renderData(getDemoData(id,state.effect));setStatus('','DEMO \u00b7 DATOS DE EJEMPLO');}
-    else {applyScene();loadWeather();}
+    $('landscape').innerHTML=landscapeFor(id);renderTabs();$('presenterNote').textContent=presenterLines[id];
+    if(state.mode==='demo') {state.effect=c.effect;renderData(getDemoData(id,state.effect));setStatus('','DEMO WEATHER \u00b7 SIMULATED CONDITIONS');}
+    else {state.data=null;state.effect=c.effect;applyScene();loadWeather();}
   }
   function applyScene() {
     const effect=state.effect, b=backgrounds[effect]||'tormenta';
@@ -146,10 +189,11 @@
     $('sceneSub').textContent=sceneCopy[effect]||sceneCopy.cloud;
     document.querySelectorAll('.effect-button').forEach(el=>{const on=el.dataset.effect===effect;el.classList.toggle('is-active',on);el.setAttribute('aria-pressed',on);});
     const custom=state.customVideos[state.city];
-    $('videoLabel').textContent=custom?'TU VIDEO \u00b7 LOCAL':'FONDO 3D ANIMADO';
+    $('videoLabel').textContent=custom?'YOUR VIDEO \u00b7 LOCAL':'3D ANIMATED BACKGROUND';
     $('poster').style.backgroundImage=`url("${asset('assets/'+b+'.jpg')}")`;
     const src=custom?.url||asset('assets/'+b+'.mp4');
     changeVideo(src,asset('assets/'+b+'.jpg'));
+    setAmbientSound();
     if(lastScene!==effect){lastScene=effect;resetParticles();}
   }
   function changeVideo(src,poster) {
@@ -159,21 +203,21 @@
     const reveal=()=>{
       if(sequence!==videoSequence)return;
       next.classList.add('is-visible');const old=frontVideo;old.classList.remove('is-visible');frontVideo=next;
-      if(!state.paused&&!document.hidden) next.play().catch(()=>toast('Pulsa el bot\u00f3n de movimiento para reproducir el fondo.'));
+      if(!state.paused&&!document.hidden) next.play().catch(()=>toast('Press the motion button to play the background.'));
       else next.pause();
       setTimeout(()=>{if(old!==frontVideo)old.pause();},1500);
     };
     next.addEventListener('loadeddata',reveal,{once:true});
-    next.addEventListener('error',()=>{if(sequence===videoSequence){currentAsset='';toast('No se pudo reproducir ese video. Se mantiene la imagen de respaldo.');}},{once:true});
+    next.addEventListener('error',()=>{if(sequence===videoSequence){currentAsset='';toast('This video could not be played. The poster image remains visible.');}},{once:true});
     next.load();
   }
   function setPaused(paused,notify=false) {
     state.paused=paused;document.body.classList.toggle('is-paused',paused);$('motionBtn').setAttribute('aria-pressed',paused);
-    const text=paused?'Reanudar animaciones':'Pausar animaciones';$('motionBtn').title=text;$('motionBtn').setAttribute('aria-label',text);
+    const text=paused?'Resume animations':'Pause animations';$('motionBtn').title=text;$('motionBtn').setAttribute('aria-label',text);
     $('motionBtn').innerHTML=svg(paused?'<path d="m8 4 12 8-12 8Z"/>':'<path d="M8 5v14M16 5v14"/>');
     if(paused){$('videoA').pause();$('videoB').pause();ctx.clearRect(0,0,canvas.width,canvas.height);}
     else if(!document.hidden)frontVideo.play().catch(()=>{});
-    if(notify)toast(paused?'Movimiento pausado.':'Atm\u00f3sfera en movimiento.');
+    if(notify)toast(paused?'Motion paused.':'Atmosphere in motion.');
   }
   function setCinema(on) {
     state.cinema=on;document.body.classList.toggle('cinema',on);$('cinemaControls').hidden=!on;$('cinemaBtn').setAttribute('aria-pressed',on);
@@ -235,30 +279,47 @@
   document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icons[el.dataset.icon]);
   document.querySelectorAll('.city-tab').forEach(el=>el.addEventListener('click',()=>setCity(el.dataset.city)));
   document.querySelectorAll('.effect-button').forEach(el=>el.addEventListener('click',()=>{
-    if(state.mode!=='demo'){setMode('demo');toast('Modo demostraci\u00f3n: estos datos son de ejemplo.');}
-    state.effect=el.dataset.effect;renderData(getDemoData(state.city,state.effect));setStatus('','DEMO \u00b7 DATOS DE EJEMPLO');
+    if(state.mode!=='demo'){setMode('demo');toast('Demo Weather: these conditions are simulated.');}
+    state.effect=el.dataset.effect;renderData(getDemoData(state.city,state.effect));setStatus('','DEMO WEATHER \u00b7 SIMULATED CONDITIONS');
   }));
   $('demoBtn').addEventListener('click',()=>setMode('demo'));$('liveBtn').addEventListener('click',()=>setMode('live'));$('refreshBtn').addEventListener('click',()=>loadWeather(true));
-  $('unitBtn').addEventListener('click',()=>{state.fahrenheit=!state.fahrenheit;$('unitBtn').innerHTML=state.fahrenheit?'\u00b0F <span>/ \u00b0C</span>':'\u00b0C <span>/ \u00b0F</span>';$('unitBtn').setAttribute('aria-label',state.fahrenheit?'Cambiar a grados Celsius':'Cambiar a grados Fahrenheit');renderData(state.data);});
+  $('unitBtn').addEventListener('click',()=>{state.fahrenheit=!state.fahrenheit;$('unitBtn').innerHTML=state.fahrenheit?'\u00b0F <span>/ \u00b0C</span>':'\u00b0C <span>/ \u00b0F</span>';$('unitBtn').setAttribute('aria-label',state.fahrenheit?'Switch to Celsius':'Switch to Fahrenheit');renderData(state.data);});
   $('intensity').addEventListener('input',event=>{state.intensity=Number(event.target.value)/100;$('intensityValue').textContent=event.target.value+'%';});
   $('motionBtn').addEventListener('click',()=>setPaused(!state.paused,true));$('cinemaBtn').addEventListener('click',()=>setCinema(true));$('exitCinema').addEventListener('click',()=>setCinema(false));
   $('brandLink').addEventListener('click',event=>{event.preventDefault();setMode('demo');setCity('lapaz');});
+  $('enterExperience').addEventListener('click',()=>{
+    state.entered=true;$('welcomeScreen').classList.add('is-exiting');
+    document.body.classList.remove('is-welcome');setTimeout(()=>$('welcomeScreen').classList.add('is-hidden'),reducedMotion.matches?0:850);
+    updateSoundControls();setAmbientSound();if(!state.paused)frontVideo.play().catch(()=>{});
+  });
+  $('welcomeBack').addEventListener('click',()=>{document.body.classList.add('is-welcome');$('welcomeScreen').classList.remove('is-hidden','is-exiting');stopAmbientSound();clearInterval(timerInterval);timerInterval=null;$('timerStart').disabled=false;$('timerPause').disabled=true;});
+  $('soundBtn').addEventListener('click',()=>{state.soundEnabled=!state.soundEnabled;updateSoundControls();setAmbientSound();});
+  $('volumeControl').addEventListener('input',event=>{state.volume=Number(event.target.value)/100;updateSoundControls();if(state.volume===0){stopAmbientSound();return;}setAmbientSound();});
+  $('nextCity').addEventListener('click',()=>{const order=Object.keys(cities),index=order.indexOf(state.city);setCity(order[(index+1)%order.length]);});
+  let timerSeconds=180,timerInterval=null;
+  const updateTimer=()=>{$('timerDisplay').textContent=`${String(Math.floor(timerSeconds/60)).padStart(2,'0')}:${String(timerSeconds%60).padStart(2,'0')}`;};
+  $('timerStart').addEventListener('click',()=>{if(timerInterval||timerSeconds<=0)return;$('timerStart').disabled=true;$('timerPause').disabled=false;timerInterval=setInterval(()=>{timerSeconds=Math.max(0,timerSeconds-1);updateTimer();if(timerSeconds===0){clearInterval(timerInterval);timerInterval=null;$('timerStart').disabled=false;$('timerPause').disabled=true;toast('Presentation time is up.');}},1000);});
+  $('timerPause').addEventListener('click',()=>{clearInterval(timerInterval);timerInterval=null;$('timerStart').disabled=false;$('timerPause').disabled=true;});
+  $('timerReset').addEventListener('click',()=>{clearInterval(timerInterval);timerInterval=null;timerSeconds=180;updateTimer();$('timerStart').disabled=false;$('timerPause').disabled=true;});
+  $('notesToggle').addEventListener('click',()=>{const show=$('presenterNotes').hidden;$('presenterNotes').hidden=!show;$('notesToggle').textContent=show?'Hide Presenter Notes':'Show Presenter Notes';$('notesToggle').setAttribute('aria-pressed',show);});
+  $('fullscreenBtn').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen();}catch{toast('Full screen is not available in this browser.');}});
+  document.addEventListener('fullscreenchange',()=>{$('fullscreenBtn').textContent=document.fullscreenElement?'Exit Full Screen':'Full Screen';});
   function openSettings(){$('uploadCity').textContent=cities[state.city].name.toUpperCase();$('resetVideo').hidden=!state.customVideos[state.city];$('settingsDialog').showModal();}
   $('settingsBtn').addEventListener('click',openSettings);$('creditsBtn').addEventListener('click',openSettings);$('closeDialog').addEventListener('click',()=>$('settingsDialog').close());
   $('settingsDialog').addEventListener('click',event=>{if(event.target===$('settingsDialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)event.target.close();}});
   $('customVideo').addEventListener('change',event=>{
     const file=event.target.files?.[0];if(!file)return;
-    if(!['video/mp4','video/webm'].includes(file.type)&&!/\.(mp4|webm)$/i.test(file.name)){toast('Elige un archivo MP4 o WebM.');return;}
+    if(!['video/mp4','video/webm'].includes(file.type)&&!/\.(mp4|webm)$/i.test(file.name)){toast('Choose an MP4 or WebM file.');return;}
     const old=state.customVideos[state.city];if(old)URL.revokeObjectURL(old.url);
-    state.customVideos[state.city]={url:URL.createObjectURL(file),name:file.name};$('resetVideo').hidden=false;applyScene();toast('Tu video se aplica a '+cities[state.city].name+'. Solo se usa en esta sesi\u00f3n.');
+    state.customVideos[state.city]={url:URL.createObjectURL(file),name:file.name};$('resetVideo').hidden=false;applyScene();toast('Your video is applied to '+cities[state.city].name+'. It is used for this session only.');
   });
-  $('resetVideo').addEventListener('click',()=>{const old=state.customVideos[state.city];if(old)URL.revokeObjectURL(old.url);delete state.customVideos[state.city];$('resetVideo').hidden=true;$('customVideo').value='';applyScene();toast('Fondo original restaurado.');});
+  $('resetVideo').addEventListener('click',()=>{const old=state.customVideos[state.city];if(old)URL.revokeObjectURL(old.url);delete state.customVideos[state.city];$('resetVideo').hidden=true;$('customVideo').value='';applyScene();toast('Included background restored.');});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&state.cinema)setCinema(false);});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){$('videoA').pause();$('videoB').pause();}else if(!state.paused)frontVideo.play().catch(()=>{});});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){$('videoA').pause();$('videoB').pause();stopAmbientSound();}else {if(!state.paused)frontVideo.play().catch(()=>{});setAmbientSound();}});
   reducedMotion.addEventListener('change',event=>setPaused(event.matches));
   window.addEventListener('resize',resizeCanvas);
-  window.addEventListener('beforeunload',()=>Object.values(state.customVideos).forEach(v=>URL.revokeObjectURL(v.url)));
+  window.addEventListener('beforeunload',()=>{stopAmbientSound();clearInterval(timerInterval);Object.values(state.customVideos).forEach(v=>URL.revokeObjectURL(v.url));});
   // The first visible video is explicitly loaded for offline and embedded editions.
   frontVideo.src=asset('assets/tormenta.mp4');frontVideo.poster=asset('assets/tormenta.jpg');frontVideo.muted=true;currentAsset=frontVideo.src;
-  resizeCanvas();setCity('lapaz');setPaused(state.paused);updateClock();setInterval(updateClock,30000);requestAnimationFrame(animate);
+  resizeCanvas();setCity('lapaz');setPaused(state.paused);updateSoundControls();updateClock();setInterval(updateClock,30000);requestAnimationFrame(animate);
 })();

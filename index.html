@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111923">
-  <meta name="description" content="ATMOS Bolivia. Una experiencia meteorologica para La Paz, Cochabamba y Santa Cruz.">
-  <title>ATMOS Bolivia &mdash; Siente el clima.</title>
+  <meta name="description" content="Oral Test weather presentation by Mauricio Gonzalo Morales Fernandez. Explore La Paz, Cochabamba and Santa Cruz.">
+  <title>ORAL TEST - Mauricio Gonzalo Morales Fernandez</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%231b2732'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23d9e7df' stroke-width='2'/%3E%3Cpath d='M13 39Q32 10 51 30M13 34Q32 53 51 26' fill='none' stroke='%23d9e7df' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
 </head>
-<body data-weather="storm" data-city="lapaz" data-night="false">
-  <audio id="weatherAudio" loop preload="none"></audio>
+<body class="is-welcome" data-weather="storm" data-city="lapaz" data-night="false">
+  <audio id="weatherAudioA" loop preload="none"></audio><audio id="weatherAudioB" loop preload="none"></audio>
   <section class="welcome-screen" id="welcomeScreen" aria-labelledby="welcomeTitle">
-    <div class="welcome-card"><span class="welcome-kicker">ATMOSPHERIC WEATHER EXPERIENCE</span><h1 id="welcomeTitle">Welcome to<br><strong>MY WEATHER CHANNEL</strong></h1><p>Explore the weather in La Paz, Cochabamba and Santa Cruz.</p><button id="enterExperience" class="welcome-button">Enter the experience <span aria-hidden="true">↗</span></button><span class="welcome-note">Sound will begin after you enter</span></div>
+    <div class="welcome-orbit" aria-hidden="true"></div><div class="welcome-card"><span class="welcome-kicker">LIVE WEATHER EXPERIENCE</span><h1 id="welcomeTitle">WELCOME TO<br><strong>MY WEATHER CHANNEL</strong></h1><div class="welcome-brand">ORAL TEST</div><p class="presenter-label">Presented by</p><p class="presenter-name">MAURICIO GONZALO<br>MORALES FERNANDEZ</p><p class="welcome-subtitle">Live Weather Experience<br><span>La Paz &bull; Cochabamba &bull; Santa Cruz</span></p><button id="enterExperience" class="welcome-button">ENTER WEATHER STUDIO <span aria-hidden="true">&rarr;</span></button><span class="welcome-note">Ambient sound starts after you enter</span></div>
   </section>
   <div class="scene" aria-hidden="true">
     <div class="poster" id="poster"></div>
@@ -28,26 +28,26 @@
 
   <div class="app-shell interface">
     <header class="header">
-      <a class="brand" href="#" aria-label="ATMOS Bolivia, inicio" id="brandLink">
+      <a class="brand" href="#" aria-label="Oral Test, weather studio home" id="brandLink">
         <svg class="brand-symbol" viewBox="0 0 44 44" fill="none" aria-hidden="true"><circle cx="22" cy="22" r="17"/><ellipse cx="22" cy="22" rx="20" ry="8" transform="rotate(-35 22 22)"/><path d="M7 32C14 32 28 12 37 12"/></svg>
-        <span>atmos<span class="brand-country">B O L I V I A</span></span>
+        <span class="brand-name">ORAL TEST<span class="brand-country">MAURICIO GONZALO MORALES FERNANDEZ</span></span>
       </a>
-      <div class="main-nav" aria-label="Modo de datos">
-        <button class="mode-button is-active" id="demoBtn" aria-pressed="true"><span class="small-dot"></span>Explorar</button>
-        <button class="mode-button" id="liveBtn" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10a7 7 0 0 1 14 0M2 10a10 10 0 0 1 20 0M8 10a4 4 0 0 1 8 0"/><circle cx="12" cy="14" r="1"/><path d="M12 15v6"/></svg>Clima actual</button>
+      <div class="main-nav" aria-label="Weather data mode">
+        <button class="mode-button is-active" id="demoBtn" aria-pressed="true"><span class="small-dot"></span>Explore</button>
+        <button class="mode-button" id="liveBtn" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10a7 7 0 0 1 14 0M2 10a10 10 0 0 1 20 0M8 10a4 4 0 0 1 8 0"/><circle cx="12" cy="14" r="1"/><path d="M12 15v6"/></svg>Live Weather</button>
       </div>
       <div class="header-actions">
-        <button class="unit-button" id="unitBtn" aria-label="Cambiar a grados Fahrenheit">&deg;C <span>/ &deg;F</span></button>
+        <button class="unit-button" id="unitBtn" aria-label="Switch to Fahrenheit">&deg;C <span>/ &deg;F</span></button>
         <span class="action-divider"></span>
-        <button class="icon-button" id="motionBtn" title="Pausar animaciones" aria-label="Pausar animaciones" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
-        <button class="icon-button" id="cinemaBtn" title="Ver solo el paisaje" aria-label="Activar modo cine" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
+        <button class="icon-button" id="motionBtn" title="Pause animations" aria-label="Pause animations" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+        <button class="icon-button" id="cinemaBtn" title="Show weather scene only" aria-label="Activate Cinema Mode" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
         <button class="icon-button" id="settingsBtn" title="Personalize and view credits" aria-label="Personalize videos and view credits"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button>
-        <button class="icon-button sound-button" id="soundBtn" title="Mute ambient sound" aria-label="Mute ambient sound" aria-pressed="true"><span aria-hidden="true">♫</span></button>
+        <button class="icon-button sound-button" id="soundBtn" title="Sound ON" aria-label="Turn sound off" aria-pressed="true"><span aria-hidden="true">♫</span></button>
       </div>
     </header>
 
     <div class="location-row">
-      <nav class="city-tabs" aria-label="Selecciona una ciudad">
+      <nav class="city-tabs" aria-label="Select a city">
         <button class="city-tab is-active" data-city="lapaz" aria-pressed="true"><span class="tab-dot"></span>La Paz <span class="tab-temp" data-temp-city="lapaz">11&deg;</span></button>
         <button class="city-tab" data-city="cocha" aria-pressed="false"><span class="tab-dot"></span>Cochabamba <span class="tab-temp" data-temp-city="cocha">26&deg;</span></button>
         <button class="city-tab" data-city="santacruz" aria-pressed="false"><span class="tab-dot"></span>Santa Cruz <span class="tab-temp" data-temp-city="santacruz">31&deg;</span></button>
@@ -57,45 +57,46 @@
 
     <main class="main">
       <section class="hero" aria-labelledby="cityName">
-        <div class="hero-topline"><span class="eyebrow">UN CIELO. TRES CIUDADES.</span><span class="coordinate" id="coordinate">16.4897&deg; S &nbsp; 68.1193&deg; O</span></div>
+        <div class="hero-topline"><span class="eyebrow">ONE SKY. THREE CITIES.</span><span class="coordinate" id="coordinate">16.4897&deg; S &nbsp; 68.1193&deg; W</span></div>
         <div class="hero-copy" aria-live="polite" aria-atomic="true">
           <div class="place-label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 10c0 5-6 10-6 10S6 15 6 10a6 6 0 1 1 12 0Z"/><circle cx="12" cy="10" r="2"/></svg><span>BOLIVIA / <span id="regionLabel">LA PAZ</span></span></div>
           <h1 id="cityName">La Paz<span class="city-period">.</span></h1>
-          <p class="city-description" id="cityDescription">Donde el cielo se siente m&aacute;s cerca.</p>
-          <div class="temperature-row"><span class="temperature" id="temperature">11<span>&deg;</span></span><div class="weather-summary"><div class="condition-line"><span class="condition-icon" id="conditionIcon"></span><span id="condition">Tormenta el&eacute;ctrica</span></div><p>Sensaci&oacute;n de <strong id="feelsLike">8&deg;</strong></p><div class="high-low"><span>&uarr; <span id="maxTemp">14&deg;</span></span><span>&darr; <span id="minTemp">5&deg;</span></span></div></div></div>
-          <div class="data-status" id="dataStatus" role="status"><span class="status-dot"></span><span id="statusText">DEMO &middot; DATOS DE EJEMPLO</span><button id="refreshBtn" class="refresh-button" title="Consultar de nuevo" aria-label="Consultar clima de nuevo" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1"/></svg></button></div>
+          <p class="city-description" id="cityDescription">Where the sky feels closer.</p>
+          <div class="temperature-row"><span class="temperature" id="temperature">11<span>&deg;</span></span><div class="weather-summary"><div class="condition-line"><span class="condition-icon" id="conditionIcon"></span><span id="condition">Thunderstorm</span></div><p>Feels like <strong id="feelsLike">8&deg;</strong></p><div class="high-low"><span>&uarr; <span id="maxTemp">14&deg;</span></span><span>&darr; <span id="minTemp">5&deg;</span></span></div></div></div>
+          <div class="data-status" id="dataStatus" role="status"><span class="status-dot"></span><span id="statusText">DEMO WEATHER &middot; SIMULATED CONDITIONS</span><button id="refreshBtn" class="refresh-button" title="Refresh weather" aria-label="Refresh weather" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 12-1l2 6M4 12l2 6a7 7 0 0 0 12-1"/></svg></button></div>
         </div>
-        <div class="scene-note"><span class="scene-number" id="sceneNumber">01</span><span class="scene-line"></span><div><span class="scene-name" id="sceneName">ALTURA &amp; ATM&Oacute;SFERA</span><span class="scene-sub" id="sceneSub">Nubes, lluvia y electricidad.</span></div></div>
+        <div class="scene-note"><span class="scene-number" id="sceneNumber">01</span><span class="scene-line"></span><div><span class="scene-name" id="sceneName">ALTITUDE &amp; ATMOSPHERE</span><span class="scene-sub" id="sceneSub">Clouds, rain and electricity.</span></div></div>
       </section>
 
-      <aside class="conditions-panel glass" aria-label="Detalles meteorologicos">
-        <div class="panel-heading"><span>EN EL AIRE</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h5"/></svg></div>
-        <div class="wind-feature"><div><span class="metric-label">Viento</span><div class="wind-value"><span id="windSpeed">18</span><span>km/h</span></div><span class="wind-from" id="windDirection">Del noreste</span></div><div class="compass" aria-hidden="true"><span class="north">N</span><span class="east">E</span><span class="south">S</span><span class="west">O</span><div class="compass-ring"></div><div class="compass-arrow" id="compassArrow"></div><span class="compass-center"></span></div></div>
-        <div class="gust-row"><span>R&aacute;fagas</span><span id="gustSpeed">28 km/h</span><span class="wind-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
-        <div class="metric-row"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11Z"/></svg>Humedad</span><strong id="humidity">82<span>%</span></strong></div>
-        <div class="metric-row"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 15H6a4 4 0 1 1 1-8 5 5 0 0 1 10 1 3.5 3.5 0 1 1 1 7M8 18l-1 3m6-3-1 3m6-3-1 3"/></svg>Precipitaci&oacute;n</span><strong id="precipitation">2.4<span>mm</span></strong></div>
-        <div class="metric-row"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="4"/><path d="M12 1v2M3 10H1m22 0h-2M4 3l2 2m14-2-2 2M3 17h18M6 21h12"/></svg>Atardecer</span><strong id="sunset">18:38</strong></div>
-        <div class="panel-caption" id="panelCaption">Escenario visual para tu presentaci&oacute;n.</div>
+      <aside class="conditions-panel glass" aria-label="Weather details">
+        <div class="panel-heading"><span>IN THE AIR</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h5"/></svg></div>
+        <div class="wind-feature"><div><span class="metric-label">Wind Speed</span><div class="wind-value"><span id="windSpeed">18</span><span>km/h</span></div><span class="wind-from" id="windDirection">From the northeast</span></div><div class="compass" aria-hidden="true"><span class="north">N</span><span class="east">E</span><span class="south">S</span><span class="west">W</span><div class="compass-ring"></div><div class="compass-arrow" id="compassArrow"></div><span class="compass-center"></span></div></div>
+        <div class="gust-row"><span>Wind Gusts</span><span id="gustSpeed">28 km/h</span><span class="wind-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
+        <div class="metric-row"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11Z"/></svg>Humidity</span><strong id="humidity">82<span>%</span></strong></div>
+        <div class="metric-row"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 15H6a4 4 0 1 1 1-8 5 5 0 0 1 10 1 3.5 3.5 0 1 1 1 7M8 18l-1 3m6-3-1 3m6-3-1 3"/></svg>Precipitation</span><strong id="precipitation">2.4<span>mm</span></strong></div>
+        <div class="metric-row"><span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="4"/><path d="M12 1v2M3 10H1m22 0h-2M4 3l2 2m14-2-2 2M3 17h18M6 21h12"/></svg>Sunset</span><strong id="sunset">18:38</strong></div>
+        <div class="panel-caption" id="panelCaption">Visual scene for your presentation.</div>
       </aside>
     </main>
 
-    <section class="bottom-zone" aria-label="Pronostico y controles">
-      <div class="forecast glass"><div class="forecast-heading"><span id="forecastTitle">PR&Oacute;XIMAS HORAS <span class="muted">/ EJEMPLO</span></span><span class="forecast-date" id="todayDate"></span></div><div class="hourly-list" id="hourlyList"></div></div>
-      <div class="experience glass"><div class="experience-heading"><span>CAMBIA LA ATM&Oacute;SFERA</span><span class="demo-label">DEMO</span></div><div class="effect-controls" aria-label="Efectos de demostracion"><button data-effect="storm" class="effect-button is-active" aria-pressed="true" title="Tormenta"><span data-icon="storm"></span><span>Tormenta</span></button><button data-effect="sun" class="effect-button" aria-pressed="false" title="Sol"><span data-icon="sun"></span><span>Sol</span></button><button data-effect="wind" class="effect-button" aria-pressed="false" title="Viento"><span data-icon="wind"></span><span>Viento</span></button><button data-effect="rain" class="effect-button" aria-pressed="false" title="Lluvia"><span data-icon="rain"></span><span>Lluvia</span></button></div><div class="intensity-control"><label for="intensity">Intensidad visual</label><input id="intensity" type="range" min="15" max="100" value="65" aria-label="Intensidad de los efectos"><span id="intensityValue">65%</span></div></div>
+    <section class="bottom-zone" aria-label="Forecast and controls">
+      <div class="forecast glass"><div class="forecast-heading"><span id="forecastTitle">NEXT HOURS <span class="muted">/ DEMO</span></span><span class="forecast-date" id="todayDate"></span></div><div class="hourly-list" id="hourlyList"></div></div>
+      <div class="experience glass"><div class="experience-heading"><span>WEATHER ATMOSPHERE</span><span class="demo-label">DEMO</span></div><div class="effect-controls" aria-label="Demo weather effects"><button data-effect="storm" class="effect-button is-active" aria-pressed="true" title="Thunderstorm"><span data-icon="storm"></span><span>Thunderstorm</span></button><button data-effect="sun" class="effect-button" aria-pressed="false" title="Sunny"><span data-icon="sun"></span><span>Sunny</span></button><button data-effect="wind" class="effect-button" aria-pressed="false" title="Windy"><span data-icon="wind"></span><span>Windy</span></button><button data-effect="rain" class="effect-button" aria-pressed="false" title="Rainy"><span data-icon="rain"></span><span>Rainy</span></button></div><div class="intensity-control"><label for="intensity">Visual intensity</label><input id="intensity" type="range" min="15" max="100" value="65" aria-label="Weather effects intensity"><span id="intensityValue">65%</span></div></div>
     </section>
 
-    <footer class="footer"><span>Siente el clima, no solo lo mires.</span><div><span class="footer-dot"></span><span id="videoLabel">FONDO 3D ANIMADO</span><span class="footer-separator">/</span><button id="creditsBtn">Acerca del proyecto <span>&nearr;</span></button></div></footer>
+    <section class="presentation-bar glass" aria-label="Presentation Mode controls"><div class="presentation-title"><span class="live-indicator"></span><strong>PRESENTATION MODE</strong></div><button class="presentation-button" id="nextCity">Next City <span aria-hidden="true">&rarr;</span></button><div class="timer-controls"><span class="timer-display" id="timerDisplay" aria-live="off">03:00</span><button class="text-button" id="timerStart">Start</button><button class="text-button" id="timerPause" disabled>Pause</button><button class="text-button" id="timerReset">Reset</button></div><button class="text-button" id="notesToggle" aria-pressed="false">Show Presenter Notes</button><button class="text-button" id="fullscreenBtn">Full Screen</button><button class="text-button" id="welcomeBack">Back to Welcome</button></section><aside class="presenter-notes glass" id="presenterNotes" hidden aria-live="polite"><span class="notes-label">PRESENTER NOTES</span><p id="presenterNote"></p></aside><div class="sound-volume glass"><label for="volumeControl">Volume <span id="volumeValue">25%</span></label><input id="volumeControl" type="range" min="0" max="100" value="25" aria-label="Ambient sound volume"></div>
+    <footer class="footer"><span>Feel the weather, not just watch it.</span><div><span class="footer-dot"></span><span id="videoLabel">3D ANIMATED BACKGROUND</span><span class="footer-separator">/</span><button id="creditsBtn">About this project <span>&nearr;</span></button></div></footer>
   </div>
 
-  <div class="cinema-controls" hidden id="cinemaControls"><span id="cinemaCity">La Paz</span><span class="cinema-sep">&middot;</span><span>ATMOS BOLIVIA</span><button id="exitCinema">Volver a los datos <span>&#8599;</span></button></div>
+  <div class="cinema-controls" hidden id="cinemaControls"><span id="cinemaCity">La Paz</span><span class="cinema-sep">&middot;</span><span>ORAL TEST</span><button id="exitCinema">Exit Cinema Mode <span>&#8599;</span></button></div>
   <div class="toast" id="toast" role="status"></div>
 
   <dialog id="settingsDialog" class="settings-dialog">
-    <div class="dialog-top"><div><span class="eyebrow">HAZLO TUYO</span><h2>Tu propia atm&oacute;sfera.</h2></div><button class="icon-button" id="closeDialog" aria-label="Cerrar">&times;</button></div>
-    <p>Los fondos incluidos son <strong>videos de animaci&oacute;n 3D creados para este proyecto</strong>. No son filmaciones de las ciudades ni el video original de Dribbble.</p>
-    <div class="upload-box"><span class="metric-label">VIDEO PARA <strong id="uploadCity">LA PAZ</strong></span><p>Reemplaza el fondo de esta ciudad con una filmaci&oacute;n tuya o un video que tengas permiso de utilizar.</p><label class="upload-button" for="customVideo">Elegir video MP4 / WebM <span>&nearr;</span></label><input type="file" id="customVideo" accept="video/mp4,video/webm" class="file-input"><p class="upload-hint">El archivo se queda en tu dispositivo. Se usa durante esta sesi&oacute;n; no se sube a ning&uacute;n servidor.</p><button class="text-button" id="resetVideo" hidden>Restaurar fondo incluido</button></div>
-    <div class="dialog-details"><h3>Una vista. Tres ciudades. Todos los climas.</h3><p><strong>Explorar:</strong> datos ficticios identificados como DEMO. Cambia de ciudad, activa una atm&oacute;sfera o ajusta su intensidad.</p><p><strong>Clima actual:</strong> consulta las condiciones estimadas de un punto de cada ciudad en Open-Meteo. Necesita internet. El fondo es ilustrativo, no una c&aacute;mara en vivo ni un mapa de todo el departamento.</p><p><strong>Accesibilidad:</strong> puedes pausar el movimiento. Se respeta la preferencia de movimiento reducido del dispositivo. Los destellos son suaves y espaciados.</p></div>
-    <div class="credits"><span>REFERENCIAS Y CR&Eacute;DITOS</span><a href="https://dribbble.com/shots/25898869-Weather-Forecasting-Web-Design" target="_blank" rel="noopener noreferrer">Inspiraci&oacute;n: Gapsy Studio &middot; Dribbble &nearr;</a><a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Datos: Open-Meteo &middot; CC BY 4.0 &nearr;</a><p>Interfaz, efectos y videos: adaptaci&oacute;n original ATMOS Bolivia. HTML, CSS y JavaScript. Sin bibliotecas externas.</p></div>
+    <div class="dialog-top"><div><span class="eyebrow">MAKE IT YOURS</span><h2>Your own atmosphere.</h2></div><button class="icon-button" id="closeDialog" aria-label="Close">&times;</button></div>
+    <p>Included backgrounds are <strong>3D animated videos created for this project</strong>. They are not city footage or the original Dribbble video.</p>
+    <div class="upload-box"><span class="metric-label">VIDEO FOR <strong id="uploadCity">LA PAZ</strong></span><p>Replace this city background with your own footage or a video you are allowed to use.</p><label class="upload-button" for="customVideo">Choose MP4 / WebM video <span>&nearr;</span></label><input type="file" id="customVideo" accept="video/mp4,video/webm" class="file-input"><p class="upload-hint">The file stays on your device and is used for this session. It is not uploaded.</p><button class="text-button" id="resetVideo" hidden>Restore included background</button></div>
+    <div class="dialog-details"><h3>One view. Three cities. Every kind of weather.</h3><p><strong>Explore:</strong> simulated values marked DEMO. Switch cities, activate an atmosphere or adjust its intensity.</p><p><strong>Live Weather:</strong> Open-Meteo provides estimated conditions for a location in each city. Internet is required. The background is illustrative, not a live camera or a map of the whole department.</p><p><strong>Accessibility:</strong> pause motion at any time. Reduced-motion preferences are respected. Flashes are soft and spaced apart.</p></div>
+    <div class="credits"><span>REFERENCES &amp; CREDITS</span><a href="https://dribbble.com/shots/25898869-Weather-Forecasting-Web-Design" target="_blank" rel="noopener noreferrer">Inspiration: Gapsy Studio &middot; Dribbble &nearr;</a><a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Data: Open-Meteo &middot; CC BY 4.0 &nearr;</a><p>Interface, effects and videos: adapted for this Oral Test presentation. HTML, CSS and JavaScript. No libraries.</p></div>
   </dialog>
-  <noscript><div class="noscript">Activa JavaScript para cambiar de ciudad y consultar el clima. El video de fondo puede reproducirse sin JavaScript.</div></noscript>
+  <noscript><div class="noscript">Enable JavaScript to switch cities and check the weather. Background video can play without JavaScript.</div></noscript>
 </body></html>
